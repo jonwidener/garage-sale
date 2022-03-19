@@ -16,12 +16,55 @@ function AddItems() {
   });
   const [count, setCount] = useState(0);
   const [tableRows, setTableRows] = useState([]);
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
+  const [search, setSearch] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const { name, description, defaultPrice, tags } = itemFormData;
   const { controlUnits, items, accounts } = data;
 
   const navigate = useNavigate();
+
+  const onSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const onItemClick = (e) => {
+    setSelectedItem(+e.target.id);
+  };
+
+  const itemFilter = ({ name, description, tags }) => {
+    const searchClean = search.trim().toUpperCase();
+    if (search.trim().length > 0) {
+      if (name.toUpperCase().includes(searchClean)) {
+        return true;
+      }
+      if (description.toUpperCase().includes(searchClean)) {
+        return true;
+      }
+      if (tags.some((tag) => tag.toUpperCase().includes(searchClean))) {
+        return true;
+      }
+    } else {
+      return true;
+    }
+
+    return false;
+  };
+
+  const onNewOrChooseSubmit = (e) => {
+    e.preventDefault();
+    if (selectedItem !== null) {
+      const chosenItem = items[selectedItem];
+      setItemFormData(() => ({
+        name: chosenItem.name,
+        description: chosenItem.description,
+        defaultPrice: chosenItem.defaultPrice,
+        tags: chosenItem.tags.join(', '),
+      }));
+    }
+    setStep(2);
+  };
 
   const onItemChange = (e) => {
     setItemFormData((prevState) => ({
@@ -39,6 +82,7 @@ function AddItems() {
           condition: 0,
           account: 0,
           price: defaultPrice,
+          quantity: 0,
         });
       }
       setTableRows(newTableRows);
@@ -67,27 +111,34 @@ function AddItems() {
   const onControlUnitsSubmit = (e) => {
     e.preventDefault();
     const newItems = items.slice();
-    const itemNo = items.length;
-    newItems.push(
-      new ItemModel({
-        itemNo,
-        name,
-        description,
-        defaultPrice,
-        tags: tags.split(/[\s,;.]+/),
-      })
-    );
+    const itemNo = selectedItem !== null ? selectedItem : items.length;
+    const newItem = {
+      itemNo,
+      name,
+      description,
+      defaultPrice,
+      tags: tags.split(/[,;.]+/).map((tag) => tag.trim()),
+    };
+    if (selectedItem !== null) {
+      newItems[selectedItem] = newItem;
+    } else {
+      newItems.push(new ItemModel(newItem));
+    }
 
     const newControlUnits = controlUnits.slice();
-    for (const { condition, price } of tableRows) {
-      newControlUnits.push(
-        new ControlUnitModel({
-          controlNo: newControlUnits.length,
-          itemNo,
-          condition,
-          price,
-        })
-      );
+    for (const { condition, price, account, quantity } of tableRows) {
+      console.log(account);
+      for (let i = 0; i < quantity; i++) {
+        newControlUnits.push(
+          new ControlUnitModel({
+            controlNo: newControlUnits.length,
+            itemNo,
+            condition,
+            price,
+            account,
+          })
+        );
+      }
     }
 
     setData((prevState) => ({
@@ -113,13 +164,60 @@ function AddItems() {
           Add Individual Items
         </li>
       </ul>
-      <div className='flex'>
-        <div className='flex-initial'></div>
+      <div className='flex w-full'>
+        <div className='flex-initial'>
+          <>
+            <h1 className='text-2xl m-2'>Choose New or Existing Item</h1>
+            <div className='card bg-base-100 shadow-xl'>
+              <div className='card-body'>
+                <form className='form-control' onSubmit={onNewOrChooseSubmit}>
+                  <label htmlFor='search' className='input-group mb-2'>
+                    <span>Search</span>
+                    <input
+                      name='search'
+                      type='text'
+                      placeholder='Item Search'
+                      className='input input-bordered'
+                      value={search}
+                      onChange={onSearchChange}
+                    />
+                  </label>
+                  <ul className='mb-2'>
+                    {items
+                      .filter((item) => itemFilter(item))
+                      .map(({ name }, index) => (
+                        <li
+                          key={index}
+                          id={index}
+                          onClick={onItemClick}
+                          className={selectedItem == index ? 'bg-primary' : ''}
+                        >
+                          {name}
+                        </li>
+                      ))}
+                  </ul>
+                  <div className='btn-group'>
+                    <button type='submit' className='btn btn-primary'>
+                      Next
+                    </button>
+                    <button
+                      type='button'
+                      className='btn btn-ghost'
+                      onClick={onCancelClick}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </>
+        </div>
         <div className='flex-initial mx-2'>
           {step > 1 && (
             <>
               <h1 className='text-2xl m-2'>Describe items to add</h1>
-              <div className='card w-96 bg-base-100 shadow-xl'>
+              <div className='card bg-base-100 shadow-xl'>
                 <div className='card-body'>
                   <form className='form-control' onSubmit={onItemSubmit}>
                     <label htmlFor='name' className='input-group mb-2'>
@@ -196,14 +294,14 @@ function AddItems() {
           {step > 2 && (
             <>
               <h1 className='text-2xl m-2'>Add Individual Items</h1>
-              <div className='card w-96 bg-base-100 shadow-xl'>
+              <div className='card bg-base-100 shadow-xl'>
                 <div className='card-body'>
                   <form
                     className='form-control'
                     onSubmit={onControlUnitsSubmit}
                   >
                     <label htmlFor='count' className='input-group mb-2'>
-                      <span>Number of Items</span>
+                      <span>Number of Rows</span>
                       <input
                         name='count'
                         type='number'
@@ -219,11 +317,12 @@ function AddItems() {
                           <th>Condition</th>
                           <th>Account</th>
                           <th>Price</th>
+                          <th>Quantity</th>
                         </tr>
                       </thead>
                       <tbody>
                         {tableRows.map(
-                          ({ condition, account, price }, index) => (
+                          ({ condition, account, price, quantity }, index) => (
                             <tr key={index}>
                               <td>
                                 <select
@@ -263,6 +362,17 @@ function AddItems() {
                                   placeholder='Unit Price'
                                   className='input input-bordered w-full input-sm'
                                   value={price}
+                                  onChange={onControlUnitsChange}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  id={index}
+                                  name='quantity'
+                                  type='number'
+                                  placeholder='Quantity'
+                                  className='input input-bordered w-full input-sm'
+                                  value={quantity}
                                   onChange={onControlUnitsChange}
                                 />
                               </td>

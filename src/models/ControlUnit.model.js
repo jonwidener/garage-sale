@@ -18,12 +18,14 @@ export default class ControlUnitModel {
     itemNo = 0,
     condition = CONDITION.EXCELLENT,
     //cost = 0,
+    account = 0,
     price = 0,
   } = {}) {
     this.controlNo = controlNo;
     this.itemNo = itemNo;
     this.condition = condition;
     // this.cost = cost;
+    this.account = account;
     this.price = price;
     // probably more
     return this;

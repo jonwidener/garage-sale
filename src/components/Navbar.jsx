@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { FaCashRegister } from 'react-icons/fa';
 
 function Navbar() {
   return (
@@ -29,6 +30,10 @@ function Navbar() {
         </Link>
       </div>
       <div className='flex-none'>
+        <Link to='/cashier' className='btn btn-ghost'>
+          <FaCashRegister />
+        </Link>
+        {/*
         <button className='btn btn-square btn-ghost'>
           <svg
             xmlns='http://www.w3.org/2000/svg'
@@ -44,6 +49,7 @@ function Navbar() {
             ></path>
           </svg>
         </button>
+        */}
       </div>
     </div>
   );

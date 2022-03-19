@@ -15,6 +15,12 @@ function DrawerContents() {
         <Link to='/inventory'>Inventory</Link>
       </li>
       <li>
+        <Link to='/sales'>Sales</Link>
+      </li>
+      <li>
+        <Link to='/cashier'>Cashier</Link>
+      </li>
+      <li>
         <FileInput onFileLoad={loadData} />
       </li>
       <li>

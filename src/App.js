@@ -8,6 +8,8 @@ import DrawerContents from './components/DrawerContents';
 import AddItems from './components/AddItems';
 import Dashboard from './pages/Dashboard';
 import AddAccount from './components/AddAccount';
+import Cashier from './pages/Cashier';
+import Sales from './pages/Sales';
 
 const App = () => {
   return (
@@ -22,6 +24,8 @@ const App = () => {
                 <Route path='/' element={<Dashboard />}></Route>
                 <Route path='/inventory' element={<Inventory />}></Route>
                 <Route path='/accounts' element={<Accounts />}></Route>
+                <Route path='/sales' element={<Sales />}></Route>
+                <Route path='/cashier' element={<Cashier />}></Route>
                 <Route path='/addaccount' element={<AddAccount />}></Route>
                 <Route path='/additems' element={<AddItems />}></Route>
                 <Route path='/notfound' element={<NotFound />}></Route>
